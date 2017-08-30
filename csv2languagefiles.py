@@ -2,7 +2,7 @@
 # apache2 license
 # author: Martin Olesnanik (http://nixone.sk)
 
-import sys, csv, os, getopt
+import sys, csv, os, getopt, json
 
 def printUsageAndQuit():
 	print("usage: python "+sys.argv[0]+" [options] <csvfile>")
@@ -36,6 +36,33 @@ def iterateDictionary(dict):
 	if (sys.version_info >= (3, 0)):
 		return dict.items()
 	return dict.iteritems()
+
+def parametrizeForAndroid(value):
+	notFormatted = False
+	if "{string}" in value:
+		notFormatted = True
+		value = value.replace("{string}", "%s")
+	if "{float}" in value:
+		notFormatted = True
+		value = value.replace("{float}", "%f")
+	if "{integer}" in value:
+		notFormatted = True
+		value = value.replace("{integer}", "%d")
+
+	if "<font" in value or "{cdata}" in value:
+		value = value.replace("{cdata}", "")
+		value = "<![CDATA[ "+value+"]]>"
+
+	return (value, notFormatted)
+
+def parametrizeForiOS(value):
+	if "{string}" in value:
+		value = value.replace("{string}", "%@")
+	if "{float}" in value:
+		value = value.replace("{float}", "%f")
+	if "{integer}" in value:
+		value = value.replace("{integer}", "%d")
+	return value
 
 keyIndex = 0
 variantIndex = 1
@@ -110,11 +137,11 @@ with open(filepath) as csvFile:
 				variantPath = "main"
 			else:
 				variantPath = variant + androidVariantSuffix
-			dirsToWrite = ["android/src/"+variantPath+"/res/values-"+languageNames[languageIndex]]
+			dirsToWrite = ["generated/android/src/"+variantPath+"/res/values-"+languageNames[languageIndex]]
 
 			# If we are processing first language, we want to use it also as default (values/strings.xml)
 			if languageIndex == 0:
-				dirsToWrite.append("android/src/"+variantPath+"/res/values")
+				dirsToWrite.append("generated/android/src/"+variantPath+"/res/values")
 			for dirToWrite in dirsToWrite:
 				if not os.path.exists(dirToWrite):
 					os.makedirs(dirToWrite)
@@ -128,32 +155,27 @@ with open(filepath) as csvFile:
 						xmlFile.write("\n    <!-- "+androidByVariantAndLanguage[variantIndex][0][key]+" -->\n")
 
 						# Then we preformat the value and write the <string> record itself
-						notFormatted = False
-						if "{string}" in value:
-							notFormatted = True
-							value = value.replace("{string}", "%s")
-						if "{float}" in value:
-							notFormatted = True
-							value = value.replace("{float}", "%f")
-						if "{integer}" in value:
-							notFormatted = True
-							value = value.replace("{integer}", "%d")
-
-						if "<font" in value or "{cdata}" in value:
-							value = value.replace("{cdata}", "")
-							value = "<![CDATA[ "+value+"]]>"
-
+						value, shouldBeNotFormatted = parametrizeForAndroid(value)
+						
 						xmlFile.write("    <string name=\""+key+"\"")
-						if notFormatted:
+						if shouldBeNotFormatted:
 							xmlFile.write(" formatted=\"false\"")
 						xmlFile.write(">"+value+"</string>\n")
 					xmlFile.write("</resources>")
 
-			# Here comes iOS
+			# Here comes iOS with .strings files
 	
-			if not os.path.exists("ios"):
-				os.makedirs("ios")
-			with open("ios/Localizable"+variant+languageNames[languageIndex]+".strings", "w") as stringsFile:
+			variantPath = ""
+			if variant == '':
+				variantPath = "main"
+			else:
+				variantPath = variant
+
+			outputDir = "generated/ios-strings/"+variantPath
+
+			if not os.path.exists(outputDir):
+				os.makedirs(outputDir)
+			with open(outputDir+"/Localizable."+languageNames[languageIndex]+".strings", "w") as stringsFile:
 				stringsFile.write("/* THIS FILE IS GENERATED, MODIFY ONLY IF YOU ARE SURE WHAT YOU ARE DOING */\n")
 
 				for key, value in iterateDictionary(iOSByVariantAndLanguage[variantIndex][languageIndex]):
@@ -162,11 +184,20 @@ with open(filepath) as csvFile:
 					stringsFile.write("\n/* "+iOSByVariantAndLanguage[variantIndex][0][key]+" */\n")
 
 					# Then we preformat the value and write the <string> record itself
-					if "{string}" in value:
-						value = value.replace("{string}", "%@")
-					if "{float}" in value:
-						value = value.replace("{float}", "%f")
-					if "{integer}" in value:
-						value = value.replace("{integer}", "%d")
+					value = parametrizeForiOS(value)
 
 					stringsFile.write("\""+key+"\" = \""+value+"\";\n")
+
+			# Here comes iOS, just in json format with support https://github.com/Kekiiwaa/Localize
+
+			outputDir = "generated/ios-json/"+variantPath
+
+			if not os.path.exists(outputDir):
+				os.makedirs(outputDir)
+			with open(outputDir+"/lang-"+languageNames[languageIndex]+".json", "w") as jsonFile:
+
+				jsonDictionary = {}
+				for key, value in iterateDictionary(iOSByVariantAndLanguage[variantIndex][languageIndex]):
+					jsonDictionary[key] = parametrizeForiOS(value)
+
+				jsonFile.write(json.dumps(jsonDictionary, indent=4))

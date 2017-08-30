@@ -5,6 +5,7 @@ Translates CSV containing language translations to both iOS and Android file for
 ## Features
 
 * Both iOS and Android supported
+* iOS support for .strings files, also for .json files using libraries like [Kekiiwaa/Localize](https://github.com/Kekiiwaa/Localize)
 * Multiple variants of apps supported, for whitelabel apps or just for multiple flavors
 * Multilanguage support
 * Possibility to designate certain keys for certain platforms or both
@@ -33,7 +34,9 @@ The structure of CSV is basically self explanatory, and the format (column order
 | user_with_name         | sales   | yes | yes     | Customer {string}                                               | Zákazník {string}                                                      | 
 | welcome_message_styled |         |     | yes     | Welcome on our &lt;font style="color: red">red&lt;/font> website! | Vitajte na našej &lt;font style="color: red">červenej&lt;/font> stránke! | 
 
-If this CSV is used as input, we get these files generated:
+### Example output
+
+If this CSV is used as input, we get these files generated under `generated` folder:
 
 ```
 - android
@@ -54,17 +57,20 @@ If this CSV is used as input, we get these files generated:
      - strings.xml
     - values-sk
      - strings.xml
-- ios
- - Localizableen.strings
- - Localizablesalesen.strings
- - Localizablesalessk.strings
- - Localizablesk.strings
-```
-
-Example of generated `ios/Localizablesalesen.Strings`:
-```
-/* Customer {string} */
-"user_with_name" = "Customer %@";
+- ios-strings
+ - main
+  - Localizable.en.strings
+  - Localizable.sk.strings
+ - sales
+  - Localizable.en.strings
+  - Localizable.sk.strings
+- ios-json
+ - main
+  - lang-en.json
+  - lang-sk.json
+ - sales
+  - lang-en.json
+  - lang-sk.json
 ```
 
 Example of generated `android/src/main/res/values/strings.xml`:
@@ -78,6 +84,19 @@ Example of generated `android/src/main/res/values/strings.xml`:
     <!-- Welcome on our <font style="color: red">red</font> website! -->
     <string name="welcome_message_styled"><![CDATA[ Welcome on our <font style="color: red">red</font> website!]]></string>
 </resources>
+```
+
+Example of generated `ios-strings/sales/Localizable.en.Strings`:
+```
+/* Customer {string} */
+"user_with_name" = "Customer %@";
+```
+
+Example of generated `ios-jsons/sales/lang-en.json`:
+```
+{
+    "user_with_name": "Customer %@"
+}
 ```
 
 # License
