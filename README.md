@@ -92,7 +92,7 @@ Example of generated `ios-strings/sales/Localizable.en.Strings`:
 "user_with_name" = "Customer %@";
 ```
 
-Example of generated `ios-jsons/sales/lang-en.json`:
+Example of generated `ios-json/sales/lang-en.json`:
 ```
 {
     "user_with_name": "Customer %@"
