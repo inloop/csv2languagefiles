@@ -38,22 +38,28 @@ def iterateDictionary(dict):
 	return dict.iteritems()
 
 def parametrizeForAndroid(value):
-	notFormatted = False
-	if "{string}" in value:
-		notFormatted = True
-		value = value.replace("{string}", "%s")
-	if "{float}" in value:
-		notFormatted = True
-		value = value.replace("{float}", "%f")
-	if "{integer}" in value:
-		notFormatted = True
-		value = value.replace("{integer}", "%d")
+	mapping = {
+		"{string}": "%s",
+		"{float}": "%f",
+		"{integer}": "%d"
+	}
+
+	formatted = False
+	for key in mapping:
+		if key in value:
+			formatted = True
+
+	if formatted:
+		value = value.replace("%", "%%")
+
+	for key in mapping:
+		value = value.replace(key, mapping[key])
 
 	if "<font" in value or "{cdata}" in value:
 		value = value.replace("{cdata}", "")
 		value = "<![CDATA[ "+value+"]]>"
 
-	return (value, notFormatted)
+	return (value, formatted)
 
 def parametrizeForiOS(value):
 	if "{string}" in value:
