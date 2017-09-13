@@ -58,6 +58,8 @@ def parametrizeForAndroid(value):
 	if "<font" in value or "{cdata}" in value:
 		value = value.replace("{cdata}", "")
 		value = "<![CDATA[ "+value+"]]>"
+	else:
+		value = value.replace("'", "\\'");
 
 	return (value, formatted)
 
@@ -71,7 +73,7 @@ def parametrizeForiOS(value):
 	return value
 
 keyIndex = 0
-variantIndex = 1
+variantRowIndex = 1
 iOSApplicableIndex = 2
 androidApplicableIndex = 3
 languageStartIndex = 4
@@ -105,8 +107,8 @@ with open(filepath) as csvFile:
 				languageNames.append(row[languageIndex])
 		else:
 			rowsToProcess.append(row)
-			if row[variantIndex] not in variantNamesDict:
-				variantNamesDict[row[variantIndex]] = len(variantNamesDict)
+			if row[variantRowIndex] not in variantNamesDict:
+				variantNamesDict[row[variantRowIndex]] = len(variantNamesDict)
 
 	# Prepare multidimensional matrices for mapping data by variant index, language index, and then key in dictionary
 	iOSByVariantAndLanguage = [[{} for i in range(0, languageCount)] for i in range(0, len(variantNamesDict))]
@@ -114,7 +116,7 @@ with open(filepath) as csvFile:
 
 	# Process all rows and fill the appropriate matrices
 	for row in rowsToProcess:
-		variant = row[variantIndex]
+		variant = row[variantRowIndex]
 		iOSApplicable = len(row[iOSApplicableIndex]) > 0
 		androidApplicable = len(row[androidApplicableIndex]) > 0
 		key = row[keyIndex]
@@ -125,9 +127,9 @@ with open(filepath) as csvFile:
 				if variant == '':
 					for v, variantIndex in iterateDictionary(variantNamesDict):
 						if key not in iOSByVariantAndLanguage[variantIndex][l]:
-							iOSByVariantAndLanguage[variantIndex][l][key] = row[languageStartIndex]
-				else:
-					iOSByVariantAndLanguage[variantIndex][l][key] = row[languageStartIndex+l]
+							iOSByVariantAndLanguage[variantIndex][l][key] = row[languageStartIndex+l]
+				
+				iOSByVariantAndLanguage[variantNamesDict[variant]][l][key] = row[languageStartIndex+l]
 			if androidApplicable:
 				androidByVariantAndLanguage[variantNamesDict[variant]][l][key] = row[languageStartIndex+l]
 
