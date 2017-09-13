@@ -58,8 +58,8 @@ def parametrizeForAndroid(value):
 	if "<font" in value or "{cdata}" in value:
 		value = value.replace("{cdata}", "")
 		value = "<![CDATA[ "+value+"]]>"
-	else:
-		value = value.replace("'", "\\'");
+
+	value = value.replace("'", "\\'");
 
 	return (value, formatted)
 
