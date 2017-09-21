@@ -164,6 +164,10 @@ with open(filepath) as csvFile:
 
 						# Then we preformat the value and write the <string> record itself
 						value, shouldBeNotFormatted = parametrizeForAndroid(value)
+
+						# If we do not have a translation, let's use key
+						if len(value) == 0:
+							value = key
 						
 						xmlFile.write("    <string name=\""+key+"\"")
 						if shouldBeNotFormatted:
