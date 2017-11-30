@@ -197,8 +197,9 @@ with open(filepath) as csvFile:
 
 					# Then we preformat the value and write the <string> record itself
 					value = parametrizeForiOS(value)
-
-					stringsFile.write("\""+key+"\" = \""+value+"\";\n")
+					#Exclude empty strings
+					if len(value) > 0:
+						stringsFile.write("\""+key+"\" = \""+value+"\";\n")
 
 			# Here comes iOS, just in json format with support https://github.com/Kekiiwaa/Localize
 
