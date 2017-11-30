@@ -197,7 +197,7 @@ with open(filepath) as csvFile:
 
 					# Then we preformat the value and write the <string> record itself
 					value = parametrizeForiOS(value)
-					#Exclude empty strings
+					# Exclude empty strings
 					if len(value) > 0:
 						stringsFile.write("\""+key+"\" = \""+value+"\";\n")
 
@@ -211,6 +211,8 @@ with open(filepath) as csvFile:
 
 				jsonDictionary = {}
 				for key, value in iterateDictionary(iOSByVariantAndLanguage[variantIndex][languageIndex]):
-					jsonDictionary[key] = parametrizeForiOS(value)
+					# Exclude empty strings
+					if len(value) > 0:
+						jsonDictionary[key] = parametrizeForiOS(value)
 
 				jsonFile.write(json.dumps(jsonDictionary, indent=4))
